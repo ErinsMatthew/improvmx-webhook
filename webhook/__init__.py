@@ -2,11 +2,16 @@ import os
 import json
 
 from flask import Flask, request
-from . import auth, db, email
+from . import auth, db
+from webhook.email import Email
 
 
 def load_config(app):
-    # default config?
+    app.config.from_mapping(
+        SECRET_KEY="<secret key goes here>",
+        AUTO_CREATE_TABLE=False,
+        DATABASE=os.path.join(app.instance_path, "improvmx-webhook-data.sqlite"),
+    )
 
     app.config.from_file("config.json", load=json.load, silent=True)
 
@@ -20,6 +25,12 @@ def create_app(test_config=None):
 
     load_config(app)
 
+    # ensure the instance folder exists
+    try:
+        os.makedirs(app.instance_path)
+    except OSError:
+        pass
+
     @app.before_request
     def authenticate():
         if not auth.is_allowed(request):
@@ -27,8 +38,10 @@ def create_app(test_config=None):
 
     @app.post("/")
     def process():
-        if email.is_valid(request):
-            email.process(request)
+        email = Email(request)
+
+        if email.is_valid():
+            email.process()
 
             return "", 204
         else:

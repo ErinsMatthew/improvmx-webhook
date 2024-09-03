@@ -4,9 +4,32 @@ import click
 from flask import current_app, g
 
 
+def validate_db():
+    valid = False
+
+    cursor = g.db.cursor()
+
+    cursor.execute(
+        "SELECT 1 FROM sqlite_schema WHERE type = 'table' AND name = 'email';"
+    )
+
+    result = cursor.fetchone()
+
+    if result:
+        valid = result[0] == 1
+
+    if cursor is not None:
+        cursor.close()
+
+    return valid
+
+
 def get_db():
     if "db" not in g:
         g.db = sqlite3.connect(current_app.config["DATABASE"])
+
+        if current_app.config["AUTO_CREATE_TABLE"] and not validate_db():
+            init_db()
 
     return g.db
 
