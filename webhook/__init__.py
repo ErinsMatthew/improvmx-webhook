@@ -10,6 +10,7 @@ def load_config(app):
     app.config.from_mapping(
         SECRET_KEY="<secret key goes here>",
         AUTO_CREATE_TABLE=False,
+        HAS_PROXY=False,
         DATABASE=os.path.join(app.instance_path, "improvmx-webhook-data.sqlite"),
     )
 
@@ -30,6 +31,15 @@ def create_app(test_config=None):
         os.makedirs(app.instance_path)
     except OSError:
         pass
+
+    if app.config["HAS_PROXY"]:
+        # see <https://flask.palletsprojects.com/en/3.0.x/deploying/proxy_fix/>
+        
+        from werkzeug.middleware.proxy_fix import ProxyFix
+
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+        )
 
     @app.before_request
     def authenticate():

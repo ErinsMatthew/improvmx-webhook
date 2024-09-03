@@ -5,5 +5,6 @@
     ],
     "DATABASE_FILENAME": "improvmx-webhook-data.sqlite",
     "AUTO_CREATE_TABLE": true,
+    "HAS_PROXY": false,
     "SECRET_KEY": "<secret key goes here>"
 }

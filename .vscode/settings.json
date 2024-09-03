@@ -3,6 +3,7 @@
         "appcontext",
         "errorcode",
         "executescript",
-        "improvmx"
+        "improvmx",
+        "werkzeug"
     ]
 }
